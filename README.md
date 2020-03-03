@@ -1,25 +1,3 @@
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
-- [Redux Egg 🥚](#redux-egg-)
-  - [First egg](#first-egg)
-    - [combineReducer](#combinereducer)
-    - [actions pattern](#actions-pattern)
-    - [selectors patterns](#selectors-patterns)
-  - [Interceptors](#interceptors)
-    - [filterAction](#filteraction)
-    - [decorateActions](#decorateactions)
-    - [afterAction](#afteraction)
-  - [Middleware](#middleware)
-    - [addMiddleware](#addmiddleware)
-  - [Why are eggs better than ducks?](#why-are-eggs-better-than-ducks)
-    - [REASON 1: Combine eggs and solve dependencies](#reason-1-combine-eggs-and-solve-dependencies)
-    - [REASON 2: Thunks sucks](#reason-2-thunks-sucks)
-    - [REASON 3: They are still ducks](#reason-3-they-are-still-ducks)
-  - [Learn deeper](#learn-deeper)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
 # Redux Egg 🥚
 
 > 🥚 Eggs are the new 🦆 ducks.
@@ -36,16 +14,45 @@ test('counter egg increments in one', () => {
 });
 ```
 
+## Table of Content
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+- [First egg](#first-egg)
+  - [# combineReducer](#-combinereducer)
+  - [Actions pattern](#actions-pattern)
+  - [Selectors patterns](#selectors-patterns)
+- [Interceptors](#interceptors)
+  - [# filterAction](#-filteraction)
+  - [# decorateActions](#-decorateactions)
+  - [# afterAction](#-afteraction)
+- [Middleware](#middleware)
+  - [# addMiddleware](#-addmiddleware)
+- [Why are eggs better than ducks?](#why-are-eggs-better-than-ducks)
+  - [REASON 1: Combine eggs and solve dependencies](#reason-1-combine-eggs-and-solve-dependencies)
+  - [REASON 2: Thunks sucks](#reason-2-thunks-sucks)
+  - [REASON 3: They are still ducks](#reason-3-they-are-still-ducks)
+- [Learn deeper](#learn-deeper)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ## First egg
 
 An egg is function that receives an object with tools.
 Export by default that function, and also export your action types and constructors.
 
 ```javascript
+const PREFIX = 'redux-egg/counter';
+
 export const INCREMENT = `${PREFIX}/INCREMENT`;
 export const increment = (value = 1) => ({ type: INCREMENT, value });
 export const REPLACE_COUNT = `${PREFIX}/REPLACE_COUNT`;
 export const replaceCount = value => ({ type: REPLACE_COUNT, value });
+
+export function getCount(state) {
+  return state[PREFIX];
+}
 
 function counterReducer(state = 0, action) {
   switch (action.type) {
@@ -61,11 +68,11 @@ function counterReducer(state = 0, action) {
 }
 
 export default ({ combineReducer }) => {
-  combineReducer('@my/counter', counterReducer);
+  combineReducer(PREFIX, counterReducer);
 };
 ```
 
-### combineReducer
+### # combineReducer
 
 It combines your reducer with the other reducers from other eggs. It receives two arguments. The first argument is a unique name for your reducer, and the second argument is the reducer itself.
 
@@ -81,7 +88,7 @@ function counterReducer(state = 0, action) {
 }
 
 export default ({ combineReducer }) => {
-  combineReducer('@my/counter', counterReducer);
+  combineReducer(PREFIX, counterReducer);
 };
 ```
 
@@ -94,7 +101,7 @@ const emptyEgg = [];
 export default emptyEgg;
 ```
 
-### actions pattern
+### Actions pattern
 
 Eggs export action types. Names of action types are in capitals and separate words by underline. The value of the action includes a prefix, which should match with the one used in combineReducer.
 
@@ -112,7 +119,7 @@ export const replaceCount = value => ({ type: REPLACE_COUNT, value });
 
 Do not use action creators to dispatch something different from action. Use interceptors instead.
 
-### selectors patterns
+### Selectors patterns
 
 Eggs export selectors. They are functions that receive at most two arguments: the first is the current state, the second is props object with possible parameters. See [Redux](https://redux.js.org/introduction/learning-resources#selectors) to learn more.
 
@@ -147,7 +154,7 @@ export default ({ afterAction }) => {
 };
 ```
 
-### filterAction
+### # filterAction
 
 Some times you want to avoid one action to be reduced. If it is your case, use the tool `filterAction` to manage it. It receives two arguments, the action type that you want to filter, and a filter function to evaluate if the action reduces. This filter function receives as the first argument is all the breeds, including the redux store, and a second one, which is the action itself. Return a boolean true or false to say if you let pass this action or you want to stop it.
 
@@ -175,7 +182,7 @@ export default ({ filterAction }) => {
 };
 ```
 
-### decorateActions
+### # decorateActions
 
 Some times you do not have enough information in actions, and you want to decorate it and add new details before the reducer. Some other times you want to make sure that data is inside some bounds. Use `decorateAction` to transform actions before the reducer.
 It receives two arguments, the action type that you want to decorate, and a decorate function to mutate the action. This decorate function receives as the first argument is all the breeds, including the redux store, and a second one, which is the action itself.
@@ -212,7 +219,7 @@ export default ({ decorateAction }) => {
 };
 ```
 
-### afterAction
+### # afterAction
 
 Probably this is the function that you want to call. The `afterAction` executes after an action reduces. It is the final step. And here is where you want to do your asynchronous operations.
 
@@ -252,7 +259,7 @@ export default ({ afterAction }) => {
 
 All interceptors are in fact one middleware. You can add more middlewares.
 
-### addMiddleware
+### # addMiddleware
 
 Add your middleware with `addMiddleware`.
 

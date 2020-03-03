@@ -1,4 +1,4 @@
-import hatch from '../../../egg-hatchery/src/index';
+import hatch from 'egg-hatchery';
 import reduxEgg from '../';
 import counterEgg, {
   INCREMENT,
